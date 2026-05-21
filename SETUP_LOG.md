@@ -321,6 +321,75 @@ Verified:
 Notes:
 - Old manual state/navigation files were replaced with the new Riverpod + Dio + go_router architecture.
 
+## 37. Backend connectivity troubleshooting
+
+Issue observed:
+- Flutter showed: `Unable to reach the server. Check your connection and backend URL.`
+
+Root cause:
+- The FastAPI backend was not running on `http://127.0.0.1:8000`
+
+Verified:
+- Database connection was fine
+- Existing users were present in MySQL:
+- `user_9bf596dd@example.com`
+- `api_4dfb0e8b@example.com`
+- Backend login worked after starting the API server
+
+Working backend start command:
+- `python3 -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000`
+
+Status:
+- Resolved locally by starting the backend server.
+
+## 38. Assessment audit
+
+Assessment request checked against repo:
+
+Completed in code:
+- JWT authentication
+- registration
+- login
+- secure token storage
+- task CRUD
+- search
+- filter by status
+- pull-to-refresh
+- logout
+- modern Flutter UI
+- reusable widgets
+- FastAPI backend
+- MySQL integration
+- validation
+- error handling
+- loading states
+
+Completed in project structure/submission prep:
+- root `README.md` replaced with setup and submission instructions
+- Render deployment scaffold added via `render.yaml`
+- local test credentials documented
+- Flutter supports runtime API URL override with `--dart-define=API_BASE_URL=...`
+- Android manifest updated with `INTERNET` permission for release networking
+
+Verified:
+- `flutter analyze` passed
+- `flutter test` passed
+- backend auth/task smoke test passed
+
+Partially completed:
+- APK build was started and progressed through Android toolchain setup plus release packaging preparation
+- Android SDK components required for release build were installed automatically during the process
+- final `app-release.apk` file was not captured before stopping the long-running Gradle build for this audit
+
+Still external / not finishable locally without account or submission action:
+- public GitHub repository URL
+- live Render deployment URL
+- final APK built with the live deployed backend URL
+
+Current overall status:
+- The application codebase is functionally complete for the assessment requirements.
+- The remaining items are submission/distribution tasks rather than core feature implementation tasks.
+
 Date update: May 21, 2026
 
 ## 9. Task schemas
