@@ -8,6 +8,8 @@ import '../providers/auth_provider.dart';
 import '../providers/task_provider.dart';
 import '../routes/app_routes.dart';
 import '../widgets/loading_widget.dart';
+import '../widgets/search_shell.dart';
+import '../widgets/selection_sheet_field.dart';
 import '../widgets/task_card.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -20,9 +22,44 @@ class DashboardScreen extends ConsumerStatefulWidget {
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   final _searchController = TextEditingController();
 
+  static const List<SelectionOption<TaskStatus?>> _statusOptions = [
+    SelectionOption<TaskStatus?>(
+      value: null,
+      label: 'All statuses',
+      caption: 'See every task in one place.',
+      icon: Icons.layers_rounded,
+    ),
+    SelectionOption<TaskStatus?>(
+      value: TaskStatus.pending,
+      label: 'Pending',
+      caption: 'Tasks that still need a start.',
+      color: Color(0xFF8B6B4A),
+      icon: Icons.hourglass_bottom_rounded,
+    ),
+    SelectionOption<TaskStatus?>(
+      value: TaskStatus.inProgress,
+      label: 'In Progress',
+      caption: 'Tasks that are actively moving.',
+      color: Color(0xFF2F7FA3),
+      icon: Icons.timelapse_rounded,
+    ),
+    SelectionOption<TaskStatus?>(
+      value: TaskStatus.completed,
+      label: 'Completed',
+      caption: 'Work that is already wrapped up.',
+      color: Color(0xFF2E8B57),
+      icon: Icons.check_circle_rounded,
+    ),
+  ];
+
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final taskState = ref.read(taskProvider);
       if (!taskState.initialized) {
@@ -85,39 +122,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     .length,
               ),
               const SizedBox(height: 20),
-              TextField(
+              SearchShell(
                 controller: _searchController,
                 onChanged: ref.read(taskProvider.notifier).setSearchQuery,
-                decoration: const InputDecoration(
-                  hintText: 'Search tasks, descriptions, or priorities',
-                  prefixIcon: Icon(Icons.search_rounded),
-                ),
+                onClear: () {
+                  _searchController.clear();
+                  ref.read(taskProvider.notifier).setSearchQuery('');
+                },
               ),
               const SizedBox(height: 14),
-              DropdownButtonFormField<TaskStatus?>(
-                initialValue: taskState.statusFilter,
-                decoration: const InputDecoration(
-                  labelText: 'Filter by status',
-                ),
-                items: const [
-                  DropdownMenuItem<TaskStatus?>(
-                    value: null,
-                    child: Text('All statuses'),
-                  ),
-                  DropdownMenuItem<TaskStatus?>(
-                    value: TaskStatus.pending,
-                    child: Text('Pending'),
-                  ),
-                  DropdownMenuItem<TaskStatus?>(
-                    value: TaskStatus.inProgress,
-                    child: Text('In Progress'),
-                  ),
-                  DropdownMenuItem<TaskStatus?>(
-                    value: TaskStatus.completed,
-                    child: Text('Completed'),
-                  ),
-                ],
-                onChanged: ref.read(taskProvider.notifier).setStatusFilter,
+              SelectionSheetField<TaskStatus?>(
+                label: 'Status filter',
+                sheetTitle: 'Filter tasks',
+                options: _statusOptions,
+                selectedValue: taskState.statusFilter,
+                leadingIcon: Icons.tune_rounded,
+                helperText:
+                    'Quickly narrow the dashboard to the work that matters now.',
+                onSelected: ref.read(taskProvider.notifier).setStatusFilter,
               ),
               const SizedBox(height: 20),
               AnimatedSwitcher(

@@ -66,6 +66,14 @@ class NexTaskTheme {
         foregroundColor: ink,
         titleTextStyle: textTheme.titleLarge,
       ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: paper,
+        surfaceTintColor: Colors.transparent,
+        modalBackgroundColor: paper,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+      ),
       cardTheme: CardThemeData(
         color: paper,
         surfaceTintColor: Colors.transparent,

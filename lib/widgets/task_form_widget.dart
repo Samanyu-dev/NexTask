@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../models/task_model.dart';
 import 'custom_button.dart';
 import 'custom_textfield.dart';
+import 'selection_sheet_field.dart';
 
 class TaskFormValue {
   TaskFormValue({
@@ -46,6 +47,54 @@ class _TaskFormWidgetState extends State<TaskFormWidget> {
   late TaskPriority _priority;
   late TaskStatus _status;
   DateTime? _dueDate;
+
+  static const List<SelectionOption<TaskPriority>> _priorityOptions = [
+    SelectionOption<TaskPriority>(
+      value: TaskPriority.high,
+      label: 'High',
+      caption: 'Urgent work with visible impact.',
+      color: Color(0xFFC44536),
+      icon: Icons.keyboard_double_arrow_up_rounded,
+    ),
+    SelectionOption<TaskPriority>(
+      value: TaskPriority.medium,
+      label: 'Medium',
+      caption: 'Important work with balanced urgency.',
+      color: Color(0xFFE08A1E),
+      icon: Icons.remove_rounded,
+    ),
+    SelectionOption<TaskPriority>(
+      value: TaskPriority.low,
+      label: 'Low',
+      caption: 'Lower urgency items you can batch later.',
+      color: Color(0xFF2E8B57),
+      icon: Icons.keyboard_double_arrow_down_rounded,
+    ),
+  ];
+
+  static const List<SelectionOption<TaskStatus>> _statusOptions = [
+    SelectionOption<TaskStatus>(
+      value: TaskStatus.pending,
+      label: 'Pending',
+      caption: 'Not started yet.',
+      color: Color(0xFF8B6B4A),
+      icon: Icons.hourglass_bottom_rounded,
+    ),
+    SelectionOption<TaskStatus>(
+      value: TaskStatus.inProgress,
+      label: 'In Progress',
+      caption: 'Currently being worked on.',
+      color: Color(0xFF2F7FA3),
+      icon: Icons.timelapse_rounded,
+    ),
+    SelectionOption<TaskStatus>(
+      value: TaskStatus.completed,
+      label: 'Completed',
+      caption: 'Finished and ready to review.',
+      color: Color(0xFF2E8B57),
+      icon: Icons.check_circle_rounded,
+    ),
+  ];
 
   @override
   void initState() {
@@ -104,46 +153,25 @@ class _TaskFormWidgetState extends State<TaskFormWidget> {
             },
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<TaskPriority>(
-            initialValue: _priority,
-            decoration: const InputDecoration(labelText: 'Priority'),
-            items: TaskPriority.values
-                .map(
-                  (priority) => DropdownMenuItem(
-                    value: priority,
-                    child: Text(priority.name.toUpperCase()),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              if (value == null) {
-                return;
-              }
-              setState(() => _priority = value);
-            },
+          SelectionSheetField<TaskPriority>(
+            label: 'Priority',
+            sheetTitle: 'Choose priority',
+            selectedValue: _priority,
+            options: _priorityOptions,
+            leadingIcon: Icons.flag_rounded,
+            helperText:
+                'Set urgency clearly so the dashboard feels intentional.',
+            onSelected: (value) => setState(() => _priority = value),
           ),
           const SizedBox(height: 16),
-          DropdownButtonFormField<TaskStatus>(
-            initialValue: _status,
-            decoration: const InputDecoration(labelText: 'Status'),
-            items: TaskStatus.values
-                .map(
-                  (status) => DropdownMenuItem(
-                    value: status,
-                    child: Text(switch (status) {
-                      TaskStatus.pending => 'Pending',
-                      TaskStatus.inProgress => 'In Progress',
-                      TaskStatus.completed => 'Completed',
-                    }),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) {
-              if (value == null) {
-                return;
-              }
-              setState(() => _status = value);
-            },
+          SelectionSheetField<TaskStatus>(
+            label: 'Status',
+            sheetTitle: 'Choose status',
+            selectedValue: _status,
+            options: _statusOptions,
+            leadingIcon: Icons.pie_chart_rounded,
+            helperText: 'Keep progress accurate for a cleaner workflow.',
+            onSelected: (value) => setState(() => _status = value),
           ),
           const SizedBox(height: 16),
           InkWell(

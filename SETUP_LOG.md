@@ -15,6 +15,99 @@ Done:
 Status:
 - Completed.
 
+## 9. UI refinement before deployment
+
+Requested:
+- Improve the search UI
+- Improve dropdown and dropdown-list styling
+- Confirm the status of the optional React admin dashboard
+
+Done:
+- Replaced the plain dashboard search field with a custom elevated search shell
+- Replaced the stock dashboard status dropdown with a modern bottom-sheet selector
+- Replaced the task form priority and status dropdowns with the same selector pattern for visual consistency
+- Added stronger sheet styling through the shared theme so selection lists feel more premium
+- Verified the updated Flutter UI still passes analyzer and tests
+
+Files added or updated:
+- `lib/widgets/search_shell.dart`
+- `lib/widgets/selection_sheet_field.dart`
+- `lib/screens/dashboard_screen.dart`
+- `lib/widgets/task_form_widget.dart`
+- `lib/core/theme.dart`
+
+Verification:
+- `flutter analyze` -> passed
+- `flutter test` -> passed
+
+Bonus admin dashboard status:
+- The optional React admin dashboard is not implemented in the current repository yet.
+- No `admin/` React application was present at the time of this audit.
+- No admin-specific backend endpoints for viewing all users/tasks or deleting users were present in this pass.
+
+Status:
+- UI polish completed.
+- Bonus admin dashboard still pending.
+
+## 10. Bonus admin dashboard
+
+Requested:
+- React-based web admin dashboard
+- View all users
+- View all tasks
+- Update task statuses
+- Delete users and tasks
+
+Done:
+- Added a real admin role on the backend with `is_admin`
+- Added schema compatibility for existing MySQL installs by auto-adding `is_admin` when missing
+- Added protected admin endpoints under `/admin-api`
+- Added admin summary, users, and tasks responses for the web dashboard
+- Added React admin dashboard source in `admin/`
+- Built the React admin app locally into `admin/dist`
+- Configured FastAPI to serve the built dashboard at `/admin/`
+- Seeded and verified a working local admin account
+
+Files added or updated:
+- `backend/app/models/user.py`
+- `backend/app/schemas/auth.py`
+- `backend/app/schemas/admin.py`
+- `backend/app/services/auth_service.py`
+- `backend/app/services/admin_service.py`
+- `backend/app/routes/admin.py`
+- `backend/app/utils/security.py`
+- `backend/app/database.py`
+- `backend/app/main.py`
+- `backend/.env.example`
+- `admin/package.json`
+- `admin/vite.config.js`
+- `admin/index.html`
+- `admin/src/main.jsx`
+- `admin/src/App.jsx`
+- `admin/src/styles.css`
+- `render.yaml`
+
+Verification:
+- `python3 -m compileall backend/app` -> passed
+- `npm install` in `admin/` -> passed
+- `npm run build` in `admin/` -> passed
+- Admin login -> `200`
+- `/auth/me` for admin -> `200`
+- `/admin-api/summary` -> `200`
+- `/admin-api/users` -> `200`
+- `/admin-api/tasks` -> `200`
+- `PATCH /admin-api/tasks/{id}/status` -> `200`
+- `DELETE /admin-api/tasks/{id}` -> `200`
+- `DELETE /admin-api/users/{id}` -> `200`
+- `/admin/` served by FastAPI -> `200`
+
+Local admin account created for verification:
+- `admin@nextask.com`
+- `Admin@12345`
+
+Status:
+- Completed.
+
 Date update: May 21, 2026
 
 ## 17. Flutter package installation

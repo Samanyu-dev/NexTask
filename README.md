@@ -34,6 +34,16 @@ Employee Task Management System built for the Flutter Full Stack Developer Asses
 - Task details screen
 - Logout
 
+### Bonus Admin Dashboard
+
+- React-based admin dashboard
+- View all users
+- View all tasks
+- Update task statuses
+- Delete users
+- Delete tasks
+- Admin-only protected API endpoints
+
 ### UI/UX
 
 - Material 3 theme
@@ -42,6 +52,8 @@ Employee Task Management System built for the Flutter Full Stack Developer Asses
 - Error handling
 - Snackbar feedback
 - Empty states
+- Modern bottom-sheet selectors for filters and task fields
+- Elevated custom search UI on the dashboard
 - Rounded cards, spacing, icons, and transitions
 
 ## Project Structure
@@ -63,6 +75,7 @@ Employee Task Management System built for the Flutter Full Stack Developer Asses
 - `backend/app/services` : business logic
 - `backend/app/routes` : API endpoints
 - `backend/app/utils` : JWT/password security
+- `admin` : React admin dashboard source
 
 ## Local Backend Setup
 
@@ -71,6 +84,16 @@ From the project root:
 ```bash
 cd backend
 python3 -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+The repository already includes a built admin bundle for deployment.
+
+If you change the admin source later and want to rebuild it locally:
+
+```bash
+cd admin
+npm install
+npm run build
 ```
 
 Swagger docs:
@@ -92,6 +115,9 @@ Required values:
 - `SECRET_KEY`
 - `ALGORITHM`
 - `ACCESS_TOKEN_EXPIRE_MINUTES`
+- `ADMIN_NAME`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
 
 ## Local Flutter Setup
 
@@ -125,6 +151,16 @@ For deployed backend:
 flutter run --dart-define=API_BASE_URL=https://your-render-service.onrender.com
 ```
 
+## Admin Dashboard
+
+After starting FastAPI, open:
+
+```text
+http://127.0.0.1:8000/admin/
+```
+
+If `8000` is already occupied, run FastAPI on another port and open `/admin/` on that same port.
+
 ## Build APK
 
 Example release build with deployed backend URL:
@@ -153,6 +189,9 @@ Set these in Render:
 - `SECRET_KEY`
 - `ALGORITHM`
 - `ACCESS_TOKEN_EXPIRE_MINUTES`
+- `ADMIN_NAME`
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
 
 ### Start command
 

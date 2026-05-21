@@ -214,3 +214,26 @@ Verified:
 - Filter works
 - MySQL connected
 - Swagger docs working
+
+## Bonus admin dashboard support
+
+Added:
+- `is_admin` role on users
+- Admin-only dependency guard
+- Admin APIs for:
+- viewing all users
+- viewing all tasks
+- updating task status
+- deleting tasks
+- deleting users
+
+Admin API prefix:
+- `/admin-api`
+
+Key endpoints:
+- `GET /admin-api/summary`
+- `GET /admin-api/users`
+- `DELETE /admin-api/users/{user_id}`
+- `GET /admin-api/tasks`
+- `PATCH /admin-api/tasks/{task_id}/status`
+- `DELETE /admin-api/tasks/{task_id}`
