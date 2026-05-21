@@ -15,6 +15,77 @@ Done:
 Status:
 - Completed.
 
+## 12. Render deployment preparation
+
+Requested:
+- Move on to Render deployment and final production configuration
+
+Done:
+- Added production-ready `/health` endpoint that checks database connectivity
+- Replaced hardcoded permissive CORS with env-driven `CORS_ORIGINS`
+- Added Render-specific env template in `backend/.env.render.example`
+- Pinned Python with `.python-version`
+- Updated `render.yaml` with:
+- `healthCheckPath`
+- longer production JWT expiry
+- shutdown grace period
+- explicit `CORS_ORIGINS` env var
+- Added a dedicated deployment guide in `RENDER_DEPLOYMENT.md`
+- Documented the production path in project README files
+
+Files added or updated:
+- `backend/app/main.py`
+- `backend/.env.example`
+- `backend/.env.render.example`
+- `.python-version`
+- `render.yaml`
+- `RENDER_DEPLOYMENT.md`
+- `README.md`
+- `backend/README.md`
+
+Notes:
+- The current `render.yaml` deploys the API service from this repo.
+- MySQL on Render is a separate private service and should be created alongside the API.
+- Production JWT expiry was set to `10080` minutes in Render guidance because the mobile app currently uses a single access token without refresh tokens.
+
+Status:
+- Completed.
+
+## 11. Admin dashboard premium UI redesign
+
+Requested:
+- Transform the admin dashboard into a premium modern SaaS interface
+- Improve hierarchy, spacing, filters, cards, loading states, toasts, and motion
+- Keep current API integrations intact
+
+Done:
+- Redesigned the React admin UI into a desktop-first SaaS shell with:
+- sticky top navigation
+- premium sidebar navigation
+- tighter KPI cards with icons
+- improved search and select controls
+- cleaner task and user surfaces
+- animated toast notifications
+- loading skeletons
+- responsive behavior across desktop and mobile
+- Added `framer-motion` for polished micro-interactions and screen transitions
+- Improved local API base URL inference so the admin app uses the current local port instead of forcing `8000`
+- Rebuilt the production admin bundle and verified the running FastAPI server served the new assets
+
+Files added or updated:
+- `admin/src/App.jsx`
+- `admin/src/styles.css`
+- `admin/package.json`
+- `admin/package-lock.json`
+
+Verification:
+- `npm install framer-motion` -> passed
+- `npm run build` -> passed
+- Running backend on `http://127.0.0.1:8001/admin/` served the new built assets
+
+Status:
+- Completed.
+
 ## 9. UI refinement before deployment
 
 Requested:

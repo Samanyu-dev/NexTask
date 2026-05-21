@@ -43,6 +43,9 @@ Employee Task Management System built for the Flutter Full Stack Developer Asses
 - Delete users
 - Delete tasks
 - Admin-only protected API endpoints
+- Premium SaaS-style responsive UI
+- Framer Motion micro-interactions
+- Skeleton loading states and toast notifications
 
 ### UI/UX
 
@@ -180,6 +183,7 @@ build/app/outputs/flutter-apk/app-release.apk
 A Render blueprint file is included:
 
 - `render.yaml`
+- full deployment checklist: `RENDER_DEPLOYMENT.md`
 
 ### Render environment variables
 
@@ -200,6 +204,16 @@ Render will use:
 ```bash
 python3 -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
+
+### Health check
+
+Render uses:
+
+```text
+/health
+```
+
+This route performs a real database connectivity check.
 
 ## Test Credentials
 

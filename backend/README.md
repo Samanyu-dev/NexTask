@@ -237,3 +237,14 @@ Key endpoints:
 - `GET /admin-api/tasks`
 - `PATCH /admin-api/tasks/{task_id}/status`
 - `DELETE /admin-api/tasks/{task_id}`
+
+## Render production prep
+
+Added for deployment readiness:
+- `/health` endpoint with database connectivity check
+- configurable `CORS_ORIGINS`
+- production env template in `backend/.env.render.example`
+- pinned Python version in repo root `.python-version`
+
+Deployment guide:
+- `RENDER_DEPLOYMENT.md`

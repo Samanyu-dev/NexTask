@@ -1,9 +1,10 @@
 import os
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import text
 
 from app.database import Base, SessionLocal, engine, ensure_schema
 from app.routes.admin import router as admin_router
@@ -16,11 +17,34 @@ from app.models import task, user  # noqa: F401
 
 app = FastAPI(title="NexTask API")
 ADMIN_DIST_DIR = Path(__file__).resolve().parents[2] / "admin" / "dist"
+DEFAULT_CORS_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:8001",
+    "http://127.0.0.1:8001",
+]
+
+
+def get_cors_origins() -> list[str]:
+    raw_origins = os.getenv("CORS_ORIGINS", "").strip()
+    if not raw_origins:
+        return DEFAULT_CORS_ORIGINS
+
+    if raw_origins == "*":
+        return ["*"]
+
+    return [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+
+
+cors_origins = get_cors_origins()
+allow_credentials = cors_origins != ["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -56,6 +80,24 @@ def seed_admin_user():
 @app.get("/")
 def health_check():
     return {"message": "NexTask API is running"}
+
+
+@app.get("/health")
+def readiness_check():
+    try:
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Database connectivity check failed",
+        ) from exc
+
+    return {
+        "status": "ok",
+        "database": "reachable",
+        "admin_dashboard": ADMIN_DIST_DIR.exists(),
+    }
 
 
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
