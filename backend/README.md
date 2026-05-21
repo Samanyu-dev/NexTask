@@ -82,6 +82,86 @@ API routes:
 - `POST /auth/login`
 - `GET /auth/me` (protected, requires bearer token)
 
+## Step 12 - Task schemas
+
+Implemented in:
+- `app/schemas/task.py`
+
+Schemas:
+- `TaskCreate`
+- `TaskUpdate`
+- `TaskResponse`
+
+## Step 13 - Security
+
+Implemented in:
+- `app/utils/security.py`
+
+Functions:
+- `hash_password()`
+- `verify_password()`
+- `create_access_token()`
+- `verify_token()`
+- `get_current_user()`
+
+## Step 14 - Auth service
+
+Implemented in:
+- `app/services/auth_service.py`
+
+Functions:
+- `register_user()`
+- `login_user()`
+
+## Step 15 - Task service
+
+Implemented in:
+- `app/services/task_service.py`
+
+Functions:
+- `create_task()`
+- `get_tasks()`
+- `update_task()`
+- `delete_task()`
+
+Features:
+- search
+- status filter
+
+## Step 16 - Auth routes
+
+Implemented in:
+- `app/routes/auth.py`
+
+Endpoints:
+- `POST /auth/register`
+- `POST /auth/login`
+
+## Step 17 - Task routes
+
+Implemented in:
+- `app/routes/task.py`
+
+Endpoints:
+- `GET /tasks`
+- `POST /tasks`
+- `PUT /tasks/{task_id}`
+- `DELETE /tasks/{task_id}`
+
+Protection:
+- All task routes use `Depends(get_current_user)`
+
+## Step 18 - main.py configuration
+
+Implemented in:
+- `app/main.py`
+
+Includes:
+- FastAPI app
+- auth and task routers
+- CORS middleware
+- table creation on startup
+
 ## Problems fixed
 
 1. Missing written documentation
@@ -97,6 +177,12 @@ API routes:
 - Initialized tables in `employee_tasks` from SQLAlchemy models.
 - Verified auth endpoints after initialization.
 
+5. Python 3.9 compatibility issue in new task modules
+- Replaced `| None` type hints with `Optional[...]`.
+
+6. Live server used wrong Python environment with plain `uvicorn`
+- Verified the working command is `python3 -m uvicorn app.main:app --reload`.
+
 ## Current backend files added for auth
 
 - `app/schemas/auth.py`
@@ -110,8 +196,21 @@ API routes:
 From `backend/`:
 
 ```bash
-uvicorn app.main:app --reload
+python3 -m uvicorn app.main:app --reload
 
 # Optional: initialize tables manually once
 python3 -c "from app.database import Base, engine; from app.models import User, Task; Base.metadata.create_all(bind=engine)"
 ```
+
+## Backend checklist verification
+
+Verified:
+- Register works
+- Login works
+- JWT token generated
+- Protected routes work
+- CRUD tasks work
+- Search works
+- Filter works
+- MySQL connected
+- Swagger docs working

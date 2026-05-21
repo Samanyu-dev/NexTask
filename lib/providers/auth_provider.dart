@@ -17,7 +17,16 @@ class AuthProvider extends ChangeNotifier {
   String? get token => _token;
 
   Future<void> initialize() async {
-    _token = await _authService.readToken();
+    final storedToken = await _authService.readToken();
+    if (storedToken != null && storedToken.isNotEmpty) {
+      final isValid = await _authService.validateToken(storedToken);
+      if (isValid) {
+        _token = storedToken;
+      } else {
+        await _authService.clearToken();
+        _token = null;
+      }
+    }
     _initializing = false;
     notifyListeners();
   }

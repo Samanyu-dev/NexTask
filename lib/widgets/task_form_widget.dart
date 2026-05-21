@@ -105,7 +105,7 @@ class _TaskFormWidgetState extends State<TaskFormWidget> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<TaskPriority>(
-            value: _priority,
+            initialValue: _priority,
             decoration: const InputDecoration(labelText: 'Priority'),
             items: TaskPriority.values
                 .map(
@@ -124,7 +124,7 @@ class _TaskFormWidgetState extends State<TaskFormWidget> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<TaskStatus>(
-            value: _status,
+            initialValue: _status,
             decoration: const InputDecoration(labelText: 'Status'),
             items: TaskStatus.values
                 .map(

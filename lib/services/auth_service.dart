@@ -65,6 +65,21 @@ class AuthService {
     return _storage.read(key: _tokenKey);
   }
 
+  Future<bool> validateToken(String token) async {
+    try {
+      final response = await _client.get(
+        Uri.parse('${AppConfig.apiBaseUrl}/auth/me'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> clearToken() {
     return _storage.delete(key: _tokenKey);
   }

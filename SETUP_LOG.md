@@ -15,6 +15,153 @@ Done:
 Status:
 - Completed.
 
+Date update: May 21, 2026
+
+## 9. Task schemas
+
+Requested:
+- `app/schemas/task.py`
+- `TaskCreate`
+- `TaskUpdate`
+- `TaskResponse`
+
+Done:
+- Added `backend/app/schemas/task.py` with all three schemas for create, update, and response payloads
+
+Status:
+- Completed.
+
+## 10. Security refactor
+
+Requested:
+- Add or centralize:
+- `hash_password()`
+- `verify_password()`
+- `create_access_token()`
+- `verify_token()`
+- `get_current_user()`
+
+Done:
+- Updated `backend/app/utils/security.py`
+- Moved `get_current_user()` into security utilities
+- Renamed token decode behavior to `verify_token()`
+- Kept JWT and password helpers in the same security module
+
+Status:
+- Completed.
+
+## 11. Auth service
+
+Requested:
+- `register_user()`
+- `login_user()`
+
+Done:
+- Refactored `backend/app/services/auth_service.py`
+- `register_user()` now hashes the password and creates the user
+- `login_user()` now validates credentials and returns a JWT
+
+Status:
+- Completed.
+
+## 12. Task service
+
+Requested:
+- `create_task()`
+- `get_tasks()`
+- `update_task()`
+- `delete_task()`
+- add search and status filter
+
+Done:
+- Added `backend/app/services/task_service.py`
+- Search works on task title and description
+- Status filter works through the tasks query
+
+Status:
+- Completed.
+
+## 13. Auth routes
+
+Requested:
+- `POST /auth/register`
+- `POST /auth/login`
+
+Done:
+- Updated `backend/app/routes/auth.py`
+- Existing protected `GET /auth/me` kept in place for token validation
+
+Status:
+- Completed.
+
+## 14. Task routes
+
+Requested:
+- `GET /tasks`
+- `POST /tasks`
+- `PUT /tasks/{id}`
+- `DELETE /tasks/{id}`
+- protect with `Depends(get_current_user)`
+
+Done:
+- Added `backend/app/routes/task.py`
+- All task routes are protected with JWT auth
+- Search query param: `search`
+- Status filter query param: `status`
+
+Status:
+- Completed.
+
+## 15. main.py configuration
+
+Requested:
+- FastAPI app
+- include routers
+- CORS
+- create tables
+
+Done:
+- Updated `backend/app/main.py`
+- Included auth and task routers
+- Added permissive development CORS
+- Kept startup table creation
+
+Status:
+- Completed.
+
+## 16. Backend verification
+
+Checklist requested:
+- Register works
+- Login works
+- JWT token generated
+- Protected routes work
+- CRUD tasks work
+- Search works
+- Filter works
+- MySQL connected
+- Swagger docs working
+
+Verified:
+- Register -> `201`
+- Login -> `200`
+- JWT generated -> yes
+- Protected `/auth/me` -> `200`
+- Task create/list/update/delete -> passed
+- Search -> passed
+- Filter -> passed
+- MySQL -> connected during live API tests
+- `/docs` -> `200`
+- `/openapi.json` -> `200`
+
+Operational note:
+- On this machine, `uvicorn app.main:app --reload` used a different Python environment that did not have `pymysql` installed.
+- Verified live server successfully with:
+- `python3 -m uvicorn app.main:app --reload`
+
+Status:
+- Completed.
+
 ## 2. Project structure request and correction
 
 Requested:
@@ -134,7 +281,7 @@ Done:
 - Added `flutter_secure_storage` dependency in `pubspec.yaml`
 - Implemented API login and secure token persistence in `lib/services/auth_service.dart`
 - Added auth state handling in `lib/providers/auth_provider.dart`
-- App startup now checks secure storage and auto-routes to Dashboard if a token exists
+- App startup now checks secure storage, validates the saved token via `/auth/me`, and auto-routes to Dashboard only when the token is still valid
 
 Files added or updated:
 - `lib/services/auth_service.dart`
