@@ -1,37 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
-import '../models/task.dart';
+import '../core/app_messenger.dart';
+import '../models/task_model.dart';
 import '../providers/auth_provider.dart';
 import '../providers/task_provider.dart';
+import '../routes/app_routes.dart';
+import '../widgets/loading_widget.dart';
 import '../widgets/task_card.dart';
-import 'task_details_screen.dart';
-import 'task_form_screen.dart';
 
-class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({
-    super.key,
-    required this.authProvider,
-    required this.taskProvider,
-  });
-
-  final AuthProvider authProvider;
-  final TaskProvider taskProvider;
+class DashboardScreen extends ConsumerStatefulWidget {
+  const DashboardScreen({super.key});
 
   @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> {
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  final _searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadTasks());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final taskState = ref.read(taskProvider);
+      if (!taskState.initialized) {
+        ref.read(taskProvider.notifier).fetchTasks();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final taskState = ref.watch(taskProvider);
     final theme = Theme.of(context);
-    final tasks = widget.taskProvider.visibleTasks;
+    final visibleTasks = taskState.visibleTasks;
 
     return Scaffold(
       appBar: AppBar(
@@ -39,111 +50,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
         actions: [
           IconButton(
             tooltip: 'Logout',
-            onPressed: () async {
-              widget.taskProvider.clear();
-              await widget.authProvider.logout();
-            },
+            onPressed: authState.isLoading ? null : _logout,
             icon: const Icon(Icons.logout_rounded),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => TaskFormScreen(taskProvider: widget.taskProvider),
-            ),
-          );
-        },
+        onPressed: () => context.pushNamed(AppRoutes.addTask),
         icon: const Icon(Icons.add_rounded),
         label: const Text('New Task'),
       ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFF6F3EC), Color(0xFFF1F7F4), Color(0xFFFDF8F1)],
+            colors: [Color(0xFFF7F3EC), Color(0xFFF0F6F2), Color(0xFFFDF9F3)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
         child: RefreshIndicator(
-          onRefresh: _loadTasks,
+          onRefresh: () => ref.read(taskProvider.notifier).fetchTasks(),
           child: ListView(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
             children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF123C35),
-                      Color(0xFF2E6C59),
-                      Color(0xFFE08A1E),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF123C35).withValues(alpha: 0.18),
-                      blurRadius: 24,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Task command center',
-                      style: theme.textTheme.displayMedium?.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Track urgent work, keep visibility high, and make progress feel tangible.',
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.88),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        _StatPill(
-                          label: 'Total',
-                          value: '${widget.taskProvider.tasks.length}',
-                        ),
-                        _StatPill(
-                          label: 'Pending',
-                          value:
-                              '${widget.taskProvider.tasks.where((task) => task.status == TaskStatus.pending).length}',
-                        ),
-                        _StatPill(
-                          label: 'Completed',
-                          value:
-                              '${widget.taskProvider.tasks.where((task) => task.status == TaskStatus.completed).length}',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              _HeroSummary(
+                name: authState.user?.name ?? 'Team',
+                total: taskState.tasks.length,
+                pending: taskState.tasks
+                    .where((task) => task.status == TaskStatus.pending)
+                    .length,
+                completed: taskState.tasks
+                    .where((task) => task.status == TaskStatus.completed)
+                    .length,
               ),
               const SizedBox(height: 20),
               TextField(
-                onChanged: widget.taskProvider.setSearchQuery,
+                controller: _searchController,
+                onChanged: ref.read(taskProvider.notifier).setSearchQuery,
                 decoration: const InputDecoration(
-                  hintText: 'Search tasks, notes, or owners',
+                  hintText: 'Search tasks, descriptions, or priorities',
                   prefixIcon: Icon(Icons.search_rounded),
                 ),
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<TaskStatus?>(
-                initialValue: widget.taskProvider.statusFilter,
+                initialValue: taskState.statusFilter,
                 decoration: const InputDecoration(
                   labelText: 'Filter by status',
                 ),
@@ -165,55 +117,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Text('Completed'),
                   ),
                 ],
-                onChanged: widget.taskProvider.setStatusFilter,
+                onChanged: ref.read(taskProvider.notifier).setStatusFilter,
               ),
               const SizedBox(height: 20),
-              if (widget.taskProvider.loading)
-                const Padding(
-                  padding: EdgeInsets.only(top: 30),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (tasks.isEmpty)
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        const Icon(Icons.inbox_rounded, size: 42),
-                        const SizedBox(height: 12),
-                        Text(
-                          'No tasks match right now',
-                          style: theme.textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Try another search, clear the filter, or create a fresh task.',
-                          style: theme.textTheme.bodyMedium,
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              else
-                ...tasks.map(
-                  (task) => Padding(
-                    padding: const EdgeInsets.only(bottom: 14),
-                    child: TaskCard(
-                      task: task,
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => TaskDetailsScreen(
-                              taskProvider: widget.taskProvider,
-                              taskId: task.id,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                child: _buildBody(
+                  theme: theme,
+                  taskState: taskState,
+                  visibleTasks: visibleTasks,
                 ),
+              ),
             ],
           ),
         ),
@@ -221,21 +135,148 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Future<void> _loadTasks() async {
-    final token = widget.authProvider.token;
-    if (token == null || token.isEmpty) {
-      return;
+  Widget _buildBody({
+    required ThemeData theme,
+    required TaskState taskState,
+    required List<TaskModel> visibleTasks,
+  }) {
+    if (taskState.isLoading && !taskState.initialized) {
+      return const SizedBox(
+        key: ValueKey('loading'),
+        height: 260,
+        child: LoadingWidget(label: 'Fetching your tasks...'),
+      );
     }
-    await widget.taskProvider.fetchTasks(token);
-    if (!mounted) {
-      return;
+
+    if (taskState.errorMessage != null && taskState.tasks.isEmpty) {
+      return Card(
+        key: const ValueKey('error'),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Icon(Icons.wifi_off_rounded, size: 40),
+              const SizedBox(height: 12),
+              Text('Unable to load tasks', style: theme.textTheme.titleLarge),
+              const SizedBox(height: 6),
+              Text(
+                taskState.errorMessage!,
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
     }
-    final error = widget.taskProvider.error;
-    if (error != null && error.isNotEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(error)));
+
+    if (visibleTasks.isEmpty) {
+      return Card(
+        key: const ValueKey('empty'),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            children: [
+              const Icon(Icons.inbox_rounded, size: 42),
+              const SizedBox(height: 12),
+              Text('No tasks found', style: theme.textTheme.titleLarge),
+              const SizedBox(height: 6),
+              Text(
+                'Try a new search, clear the filter, or create your next priority task.',
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
     }
+
+    return Column(
+      key: const ValueKey('content'),
+      children: [
+        for (final task in visibleTasks)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 14),
+            child: TaskCard(
+              task: task,
+              onTap: () => context.pushNamed(
+                AppRoutes.taskDetails,
+                pathParameters: {'taskId': '${task.id}'},
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _logout() async {
+    await ref.read(authProvider.notifier).logout();
+    showAppSnackBar('Logged out');
+  }
+}
+
+class _HeroSummary extends StatelessWidget {
+  const _HeroSummary({
+    required this.name,
+    required this.total,
+    required this.pending,
+    required this.completed,
+  });
+
+  final String name;
+  final int total;
+  final int pending;
+  final int completed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF123C35), Color(0xFF2E6C59), Color(0xFFE08A1E)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF123C35).withValues(alpha: 0.16),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Good to see you, $name',
+            style: theme.textTheme.displayMedium?.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Keep the urgent work visible, the noisy work filtered, and the day under control.',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: Colors.white.withValues(alpha: 0.88),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _StatPill(label: 'Total', value: '$total'),
+              _StatPill(label: 'Pending', value: '$pending'),
+              _StatPill(label: 'Completed', value: '$completed'),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -257,6 +298,7 @@ class _StatPill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(' ', style: TextStyle(fontSize: 0)),
           Text(
             label,
             style: const TextStyle(

@@ -1,22 +1,68 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:nextask/main.dart';
-import 'package:nextask/providers/auth_provider.dart';
-import 'package:nextask/providers/task_provider.dart';
-import 'package:nextask/services/auth_service.dart';
-import 'package:nextask/services/task_service.dart';
+import 'package:nextask/services/api_service.dart';
 
-class _FakeAuthService extends AuthService {
+class _FakeSecureStorage extends FlutterSecureStorage {
+  _FakeSecureStorage();
+
+  final Map<String, String> _memory = {};
+
   @override
-  Future<String?> readToken() async => null;
+  Future<String?> read({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    WindowsOptions? wOptions,
+    AppleOptions? mOptions,
+  }) async {
+    return _memory[key];
+  }
+
+  @override
+  Future<void> write({
+    required String key,
+    required String? value,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    WindowsOptions? wOptions,
+    AppleOptions? mOptions,
+  }) async {
+    if (value == null) {
+      _memory.remove(key);
+    } else {
+      _memory[key] = value;
+    }
+  }
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    WindowsOptions? wOptions,
+    AppleOptions? mOptions,
+  }) async {
+    _memory.remove(key);
+  }
 }
 
 void main() {
   testWidgets('shows login screen when no token is stored', (tester) async {
-    final authProvider = AuthProvider(_FakeAuthService());
-    final taskProvider = TaskProvider(TaskService());
-
     await tester.pumpWidget(
-      NexTaskApp(authProvider: authProvider, taskProvider: taskProvider),
+      ProviderScope(
+        overrides: [
+          secureStorageProvider.overrideWithValue(_FakeSecureStorage()),
+        ],
+        child: const NexTaskApp(),
+      ),
     );
     await tester.pumpAndSettle();
 

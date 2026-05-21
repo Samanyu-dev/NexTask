@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../models/task.dart';
+import '../core/app_messenger.dart';
 import '../providers/task_provider.dart';
-import 'task_form_screen.dart';
+import '../routes/app_routes.dart';
+import '../widgets/loading_widget.dart';
 
-class TaskDetailsScreen extends StatelessWidget {
-  const TaskDetailsScreen({
-    super.key,
-    required this.taskProvider,
-    required this.taskId,
-  });
+class TaskDetailsScreen extends ConsumerWidget {
+  const TaskDetailsScreen({super.key, required this.taskId});
 
-  final TaskProvider taskProvider;
   final int taskId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final taskState = ref.watch(taskProvider);
+    final task = ref.read(taskProvider.notifier).getTaskById(taskId);
     final theme = Theme.of(context);
-    final task = taskProvider.tasks.cast<TaskItem?>().firstWhere(
-      (item) => item?.id == taskId,
-      orElse: () => null,
-    );
+
+    if (task == null && !taskState.initialized) {
+      return const Scaffold(
+        body: LoadingWidget(label: 'Loading task details...'),
+      );
+    }
 
     if (task == null) {
       return Scaffold(
@@ -35,21 +37,28 @@ class TaskDetailsScreen extends StatelessWidget {
         title: const Text('Task Details'),
         actions: [
           IconButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) =>
-                      TaskFormScreen(taskProvider: taskProvider, task: task),
-                ),
-              );
-            },
+            onPressed: () => context.pushNamed(
+              AppRoutes.editTask,
+              pathParameters: {'taskId': '$taskId'},
+            ),
             icon: const Icon(Icons.edit_outlined),
           ),
           IconButton(
-            onPressed: () {
-              taskProvider.deleteTask(task.id);
-              Navigator.of(context).pop();
-            },
+            onPressed: taskState.isSaving
+                ? null
+                : () async {
+                    try {
+                      await ref.read(taskProvider.notifier).deleteTask(task.id);
+                      showAppSnackBar('Task deleted');
+                      if (context.mounted) {
+                        context.pop();
+                      }
+                    } catch (error) {
+                      showAppSnackBar(
+                        error.toString().replaceFirst('Exception: ', ''),
+                      );
+                    }
+                  },
             icon: const Icon(Icons.delete_outline_rounded),
           ),
         ],
@@ -99,9 +108,9 @@ class TaskDetailsScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _SectionCard(
-                    title: 'Task owner',
+                    title: 'Priority and status',
                     child: Text(
-                      'User ID: ${task.userId}',
+                      '${task.priorityLabel} priority · ${task.statusLabel}',
                       style: theme.textTheme.bodyLarge,
                     ),
                   ),
@@ -110,16 +119,10 @@ class TaskDetailsScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => TaskFormScreen(
-                                  taskProvider: taskProvider,
-                                  task: task,
-                                ),
-                              ),
-                            );
-                          },
+                          onPressed: () => context.pushNamed(
+                            AppRoutes.editTask,
+                            pathParameters: {'taskId': '$taskId'},
+                          ),
                           icon: const Icon(Icons.edit_outlined),
                           label: const Text('Edit'),
                         ),
@@ -130,10 +133,26 @@ class TaskDetailsScreen extends StatelessWidget {
                           style: FilledButton.styleFrom(
                             backgroundColor: const Color(0xFFC44536),
                           ),
-                          onPressed: () {
-                            taskProvider.deleteTask(task.id);
-                            Navigator.of(context).pop();
-                          },
+                          onPressed: taskState.isSaving
+                              ? null
+                              : () async {
+                                  try {
+                                    await ref
+                                        .read(taskProvider.notifier)
+                                        .deleteTask(task.id);
+                                    showAppSnackBar('Task deleted');
+                                    if (context.mounted) {
+                                      context.pop();
+                                    }
+                                  } catch (error) {
+                                    showAppSnackBar(
+                                      error.toString().replaceFirst(
+                                        'Exception: ',
+                                        '',
+                                      ),
+                                    );
+                                  }
+                                },
                           icon: const Icon(Icons.delete_outline_rounded),
                           label: const Text('Delete'),
                         ),

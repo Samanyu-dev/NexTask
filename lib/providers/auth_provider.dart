@@ -1,42 +1,137 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../services/auth_service.dart';
+import '../models/user_model.dart';
+import '../services/api_service.dart';
 
-class AuthProvider extends ChangeNotifier {
-  AuthProvider(this._authService);
+final authProvider = NotifierProvider<AuthController, AuthState>(
+  AuthController.new,
+);
 
-  final AuthService _authService;
+class AuthState {
+  const AuthState({
+    required this.isInitializing,
+    required this.isLoading,
+    required this.token,
+    required this.user,
+    required this.errorMessage,
+  });
 
-  bool _initializing = true;
-  bool _busy = false;
-  String? _token;
+  final bool isInitializing;
+  final bool isLoading;
+  final String? token;
+  final UserModel? user;
+  final String? errorMessage;
 
-  bool get initializing => _initializing;
-  bool get busy => _busy;
-  bool get isAuthenticated => (_token ?? '').isNotEmpty;
-  String? get token => _token;
+  bool get isAuthenticated => (token ?? '').isNotEmpty && user != null;
 
-  Future<void> initialize() async {
-    final storedToken = await _authService.readToken();
-    if (storedToken != null && storedToken.isNotEmpty) {
-      final isValid = await _authService.validateToken(storedToken);
-      if (isValid) {
-        _token = storedToken;
-      } else {
-        await _authService.clearToken();
-        _token = null;
-      }
+  factory AuthState.initial() {
+    return const AuthState(
+      isInitializing: true,
+      isLoading: false,
+      token: null,
+      user: null,
+      errorMessage: null,
+    );
+  }
+
+  factory AuthState.unauthenticated() {
+    return const AuthState(
+      isInitializing: false,
+      isLoading: false,
+      token: null,
+      user: null,
+      errorMessage: null,
+    );
+  }
+
+  AuthState copyWith({
+    bool? isInitializing,
+    bool? isLoading,
+    String? token,
+    UserModel? user,
+    String? errorMessage,
+    bool clearToken = false,
+    bool clearUser = false,
+    bool clearError = false,
+  }) {
+    return AuthState(
+      isInitializing: isInitializing ?? this.isInitializing,
+      isLoading: isLoading ?? this.isLoading,
+      token: clearToken ? null : (token ?? this.token),
+      user: clearUser ? null : (user ?? this.user),
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+    );
+  }
+}
+
+class AuthController extends Notifier<AuthState> {
+  static const _tokenKey = 'jwt_token';
+  bool _bootstrapped = false;
+
+  ApiService get _api => ref.read(apiServiceProvider);
+
+  @override
+  AuthState build() {
+    if (!_bootstrapped) {
+      _bootstrapped = true;
+      Future<void>.microtask(_restoreSession);
     }
-    _initializing = false;
-    notifyListeners();
+    return AuthState.initial();
+  }
+
+  Future<void> _restoreSession() async {
+    final storage = ref.read(secureStorageProvider);
+    final token = await storage.read(key: _tokenKey);
+
+    if (token == null || token.isEmpty) {
+      state = AuthState.unauthenticated();
+      return;
+    }
+
+    state = state.copyWith(isInitializing: true, clearError: true);
+
+    try {
+      _api.setAuthToken(token);
+      final user = await _api.getCurrentUser();
+      state = AuthState(
+        isInitializing: false,
+        isLoading: false,
+        token: token,
+        user: user,
+        errorMessage: null,
+      );
+    } catch (_) {
+      await storage.delete(key: _tokenKey);
+      _api.setAuthToken(null);
+      state = AuthState.unauthenticated();
+    }
   }
 
   Future<void> login({required String email, required String password}) async {
-    _setBusy(true);
+    state = state.copyWith(isLoading: true, clearError: true);
+    final storage = ref.read(secureStorageProvider);
+
     try {
-      _token = await _authService.login(email: email, password: password);
-    } finally {
-      _setBusy(false);
+      final token = await _api.login(email: email, password: password);
+      _api.setAuthToken(token);
+      await storage.write(key: _tokenKey, value: token);
+      final user = await _api.getCurrentUser();
+
+      state = AuthState(
+        isInitializing: false,
+        isLoading: false,
+        token: token,
+        user: user,
+        errorMessage: null,
+      );
+    } catch (error) {
+      _api.setAuthToken(null);
+      state = state.copyWith(
+        isInitializing: false,
+        isLoading: false,
+        errorMessage: _cleanError(error),
+      );
+      rethrow;
     }
   }
 
@@ -45,26 +140,35 @@ class AuthProvider extends ChangeNotifier {
     required String email,
     required String password,
   }) async {
-    _setBusy(true);
+    state = state.copyWith(isLoading: true, clearError: true);
+
     try {
-      await _authService.register(name: name, email: email, password: password);
-    } finally {
-      _setBusy(false);
+      await _api.register(name: name, email: email, password: password);
+      state = state.copyWith(
+        isInitializing: false,
+        isLoading: false,
+        clearError: true,
+      );
+    } catch (error) {
+      state = state.copyWith(
+        isInitializing: false,
+        isLoading: false,
+        errorMessage: _cleanError(error),
+      );
+      rethrow;
     }
   }
 
   Future<void> logout() async {
-    _setBusy(true);
-    try {
-      await _authService.clearToken();
-      _token = null;
-    } finally {
-      _setBusy(false);
-    }
+    state = state.copyWith(isLoading: true, clearError: true);
+    final storage = ref.read(secureStorageProvider);
+
+    await storage.delete(key: _tokenKey);
+    _api.setAuthToken(null);
+    state = AuthState.unauthenticated();
   }
 
-  void _setBusy(bool value) {
-    _busy = value;
-    notifyListeners();
+  String _cleanError(Object error) {
+    return error.toString().replaceFirst('Exception: ', '');
   }
 }

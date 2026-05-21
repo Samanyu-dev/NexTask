@@ -1,64 +1,74 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../models/task.dart';
+import '../models/task_model.dart';
 
 class TaskCard extends StatelessWidget {
   const TaskCard({super.key, required this.task, required this.onTap});
 
-  final TaskItem task;
+  final TaskModel task;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(task.title, style: theme.textTheme.titleLarge),
-                  ),
-                  const SizedBox(width: 12),
-                  _Badge(label: task.priorityLabel, color: task.priorityColor),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                task.description,
-                style: theme.textTheme.bodyMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  _Badge(
-                    label: task.statusLabel,
-                    color: task.statusColor,
-                    outlined: true,
-                  ),
-                  if (task.dueDate != null)
-                    _Badge(
-                      label: DateFormat('dd MMM').format(task.dueDate!),
-                      color: const Color(0xFF7B705E),
-                      outlined: true,
-                      icon: Icons.schedule_rounded,
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOutCubic,
+      child: Card(
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.title,
+                        style: theme.textTheme.titleLarge,
+                      ),
                     ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 12),
+                    _Badge(
+                      label: task.priorityLabel,
+                      color: task.priorityColor,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  task.description,
+                  style: theme.textTheme.bodyMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  children: [
+                    _Badge(
+                      label: task.statusLabel,
+                      color: task.statusColor,
+                      outlined: true,
+                    ),
+                    if (task.dueDate != null)
+                      _Badge(
+                        label: DateFormat('dd MMM').format(task.dueDate!),
+                        color: const Color(0xFF7B705E),
+                        outlined: true,
+                        icon: Icons.schedule_rounded,
+                      ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

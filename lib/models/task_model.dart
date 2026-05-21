@@ -4,8 +4,8 @@ enum TaskPriority { high, medium, low }
 
 enum TaskStatus { pending, inProgress, completed }
 
-class TaskItem {
-  TaskItem({
+class TaskModel {
+  const TaskModel({
     required this.id,
     required this.title,
     required this.description,
@@ -47,7 +47,7 @@ class TaskItem {
     TaskStatus.completed => const Color(0xFF2E8B57),
   };
 
-  TaskItem copyWith({
+  TaskModel copyWith({
     int? id,
     String? title,
     String? description,
@@ -57,7 +57,7 @@ class TaskItem {
     TaskStatus? status,
     int? userId,
   }) {
-    return TaskItem(
+    return TaskModel(
       id: id ?? this.id,
       title: title ?? this.title,
       description: description ?? this.description,
@@ -68,9 +68,9 @@ class TaskItem {
     );
   }
 
-  factory TaskItem.fromJson(Map<String, dynamic> json) {
-    return TaskItem(
-      id: json['id'] as int,
+  factory TaskModel.fromJson(Map<String, dynamic> json) {
+    return TaskModel(
+      id: (json['id'] ?? 0) as int,
       title: (json['title'] ?? '') as String,
       description: (json['description'] ?? '') as String,
       priority: _priorityFromString((json['priority'] ?? 'medium') as String),
@@ -89,8 +89,18 @@ class TaskItem {
       'description': description,
       'priority': priority.name,
       'due_date': dueDate?.toIso8601String(),
-      'status': status.name,
+      'status': _statusApiValue(status),
       'user_id': userId,
+    };
+  }
+
+  Map<String, dynamic> toRequestJson() {
+    return {
+      'title': title,
+      'description': description,
+      'priority': priority.name,
+      'due_date': dueDate?.toIso8601String(),
+      'status': _statusApiValue(status),
     };
   }
 
@@ -110,11 +120,22 @@ class TaskItem {
       case 'completed':
         return TaskStatus.completed;
       case 'in_progress':
-      case 'inprogress':
       case 'in progress':
+      case 'inprogress':
         return TaskStatus.inProgress;
       default:
         return TaskStatus.pending;
+    }
+  }
+
+  static String _statusApiValue(TaskStatus status) {
+    switch (status) {
+      case TaskStatus.pending:
+        return 'pending';
+      case TaskStatus.inProgress:
+        return 'in_progress';
+      case TaskStatus.completed:
+        return 'completed';
     }
   }
 }

@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../core/app_messenger.dart';
 import '../providers/auth_provider.dart';
+import '../routes/app_routes.dart';
+import '../widgets/custom_button.dart';
+import '../widgets/custom_textfield.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({
-    super.key,
-    required this.authProvider,
-    required this.onRegisterTap,
-  });
-
-  final AuthProvider authProvider;
-  final VoidCallback onRegisterTap;
+class LoginScreen extends ConsumerStatefulWidget {
+  const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -30,13 +29,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFF7F0E7), Color(0xFFE6F0EC)],
+            colors: [Color(0xFFF8F1E8), Color(0xFFE6F2ED)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -46,10 +46,10 @@ class _LoginScreenState extends State<LoginScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 460),
+                constraints: const BoxConstraints(maxWidth: 470),
                 child: Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(28),
+                    padding: const EdgeInsets.all(30),
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -61,16 +61,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Log in to keep your team, deadlines, and momentum in sync.',
+                            'Log in to keep tasks, deadlines, and momentum beautifully organized.',
                             style: theme.textTheme.bodyLarge,
                           ),
                           const SizedBox(height: 28),
-                          TextFormField(
+                          CustomTextField(
                             controller: _emailController,
+                            label: 'Email',
+                            hint: 'samanyu@example.com',
                             keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              prefixIcon: Icon(Icons.alternate_email_rounded),
+                            prefixIcon: const Icon(
+                              Icons.alternate_email_rounded,
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
@@ -83,13 +84,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
+                          CustomTextField(
                             controller: _passwordController,
+                            label: 'Password',
+                            hint: 'Enter your password',
                             obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Password',
-                              prefixIcon: Icon(Icons.lock_outline_rounded),
-                            ),
+                            prefixIcon: const Icon(Icons.lock_outline_rounded),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Password is required';
@@ -101,33 +101,17 @@ class _LoginScreenState extends State<LoginScreen> {
                             },
                           ),
                           const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: widget.authProvider.busy
-                                  ? null
-                                  : _submit,
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                              ),
-                              child: widget.authProvider.busy
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text('Login'),
-                            ),
+                          CustomButton(
+                            label: 'Login',
+                            icon: Icons.login_rounded,
+                            isLoading: authState.isLoading,
+                            onPressed: _submit,
                           ),
                           const SizedBox(height: 18),
                           Align(
                             child: TextButton(
-                              onPressed: widget.onRegisterTap,
+                              onPressed: () =>
+                                  context.goNamed(AppRoutes.register),
                               child: const Text('Need an account? Register'),
                             ),
                           ),
@@ -150,19 +134,15 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     try {
-      await widget.authProvider.login(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+      await ref
+          .read(authProvider.notifier)
+          .login(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
+      showAppSnackBar('Login successful');
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.toString().replaceFirst('Exception: ', '')),
-        ),
-      );
+      showAppSnackBar(error.toString().replaceFirst('Exception: ', ''));
     }
   }
 }

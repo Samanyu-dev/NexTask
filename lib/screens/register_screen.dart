@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../core/app_messenger.dart';
 import '../providers/auth_provider.dart';
+import '../routes/app_routes.dart';
+import '../widgets/custom_button.dart';
+import '../widgets/custom_textfield.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({
-    super.key,
-    required this.authProvider,
-    required this.onLoginTap,
-  });
-
-  final AuthProvider authProvider;
-  final VoidCallback onLoginTap;
+class RegisterScreen extends ConsumerStatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
@@ -34,13 +33,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFEEF3EA), Color(0xFFF6EEE7)],
+            colors: [Color(0xFFEAF2EC), Color(0xFFF8F1E8)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -50,10 +50,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 480),
+                constraints: const BoxConstraints(maxWidth: 500),
                 child: Card(
                   child: Padding(
-                    padding: const EdgeInsets.all(28),
+                    padding: const EdgeInsets.all(30),
                     child: Form(
                       key: _formKey,
                       child: Column(
@@ -65,15 +65,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Start with a clean workspace and a stronger task rhythm.',
+                            'Build a calmer workflow with a polished task space from day one.',
                             style: theme.textTheme.bodyLarge,
                           ),
                           const SizedBox(height: 24),
-                          TextFormField(
+                          CustomTextField(
                             controller: _nameController,
-                            decoration: const InputDecoration(
-                              labelText: 'Full name',
-                              prefixIcon: Icon(Icons.person_outline_rounded),
+                            label: 'Full name',
+                            hint: 'Samanyu',
+                            prefixIcon: const Icon(
+                              Icons.person_outline_rounded,
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
@@ -83,12 +84,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
+                          CustomTextField(
                             controller: _emailController,
+                            label: 'Email',
+                            hint: 'samanyu@example.com',
                             keyboardType: TextInputType.emailAddress,
-                            decoration: const InputDecoration(
-                              labelText: 'Email',
-                              prefixIcon: Icon(Icons.alternate_email_rounded),
+                            prefixIcon: const Icon(
+                              Icons.alternate_email_rounded,
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
@@ -101,13 +103,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
+                          CustomTextField(
                             controller: _passwordController,
+                            label: 'Password',
+                            hint: 'Create a secure password',
                             obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Password',
-                              prefixIcon: Icon(Icons.lock_outline_rounded),
-                            ),
+                            prefixIcon: const Icon(Icons.lock_outline_rounded),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Password is required';
@@ -119,12 +120,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
+                          CustomTextField(
                             controller: _confirmController,
+                            label: 'Confirm password',
+                            hint: 'Re-enter your password',
                             obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Confirm password',
-                              prefixIcon: Icon(Icons.verified_user_outlined),
+                            prefixIcon: const Icon(
+                              Icons.verified_user_outlined,
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -137,33 +139,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             },
                           ),
                           const SizedBox(height: 24),
-                          SizedBox(
-                            width: double.infinity,
-                            child: FilledButton(
-                              onPressed: widget.authProvider.busy
-                                  ? null
-                                  : _submit,
-                              style: FilledButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                              ),
-                              child: widget.authProvider.busy
-                                  ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text('Create account'),
-                            ),
+                          CustomButton(
+                            label: 'Create account',
+                            icon: Icons.person_add_alt_1_rounded,
+                            isLoading: authState.isLoading,
+                            onPressed: _submit,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 18),
                           Align(
                             child: TextButton(
-                              onPressed: widget.onLoginTap,
+                              onPressed: () => context.goNamed(AppRoutes.login),
                               child: const Text('Already registered? Login'),
                             ),
                           ),
@@ -186,29 +171,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     try {
-      await widget.authProvider.register(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
-
-      if (!mounted) {
-        return;
+      await ref
+          .read(authProvider.notifier)
+          .register(
+            name: _nameController.text.trim(),
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
+      showAppSnackBar('Registration successful. Please log in.');
+      if (mounted) {
+        context.goNamed(AppRoutes.login);
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account created. Please log in.')),
-      );
-      widget.onLoginTap();
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.toString().replaceFirst('Exception: ', '')),
-        ),
-      );
+      showAppSnackBar(error.toString().replaceFirst('Exception: ', ''));
     }
   }
 }

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../models/task.dart';
+import '../models/task_model.dart';
+import 'custom_button.dart';
+import 'custom_textfield.dart';
 
 class TaskFormValue {
   TaskFormValue({
@@ -25,11 +27,13 @@ class TaskFormWidget extends StatefulWidget {
     required this.onSubmit,
     this.initialTask,
     this.submitLabel = 'Save task',
+    this.isLoading = false,
   });
 
-  final TaskItem? initialTask;
+  final TaskModel? initialTask;
   final ValueChanged<TaskFormValue> onSubmit;
   final String submitLabel;
+  final bool isLoading;
 
   @override
   State<TaskFormWidget> createState() => _TaskFormWidgetState();
@@ -74,12 +78,10 @@ class _TaskFormWidgetState extends State<TaskFormWidget> {
         children: [
           Text('Task essentials', style: theme.textTheme.titleLarge),
           const SizedBox(height: 18),
-          TextFormField(
+          CustomTextField(
             controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'Title',
-              hintText: 'Quarterly review prep',
-            ),
+            label: 'Title',
+            hint: 'Quarterly review prep',
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Title is required';
@@ -88,14 +90,12 @@ class _TaskFormWidgetState extends State<TaskFormWidget> {
             },
           ),
           const SizedBox(height: 16),
-          TextFormField(
+          CustomTextField(
             controller: _descriptionController,
             minLines: 4,
             maxLines: 5,
-            decoration: const InputDecoration(
-              labelText: 'Description',
-              hintText: 'Add context, owners, and what success looks like.',
-            ),
+            label: 'Description',
+            hint: 'Add context, owners, and what success looks like.',
             validator: (value) {
               if (value == null || value.trim().isEmpty) {
                 return 'Description is required';
@@ -177,15 +177,10 @@ class _TaskFormWidgetState extends State<TaskFormWidget> {
             ),
           ),
           const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: _submit,
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: Text(widget.submitLabel),
-            ),
+          CustomButton(
+            label: widget.submitLabel,
+            isLoading: widget.isLoading,
+            onPressed: _submit,
           ),
         ],
       ),

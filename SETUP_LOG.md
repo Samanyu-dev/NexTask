@@ -17,6 +17,312 @@ Status:
 
 Date update: May 21, 2026
 
+## 17. Flutter package installation
+
+Requested:
+- `flutter_riverpod`
+- `dio`
+- `go_router`
+- `flutter_secure_storage`
+- `intl`
+
+Done:
+- Added `flutter_riverpod`, `dio`, and `go_router`
+- Kept existing `flutter_secure_storage` and `intl`
+
+Status:
+- Completed.
+
+## 18. Theme system
+
+Requested:
+- `core/theme.dart`
+- Material 3
+- colors
+- typography
+
+Done:
+- Added `lib/core/theme.dart`
+- Added a custom Material 3 theme with editorial typography, warm neutrals, rounded cards, subtle shadows, and a stronger premium visual tone
+
+Status:
+- Completed.
+
+## 19. Routing
+
+Requested:
+- `routes/app_routes.dart`
+- routes for login, register, dashboard, add task, edit task, details
+
+Done:
+- Added `lib/routes/app_routes.dart`
+- Configured `go_router`
+- Added guarded routes for:
+- splash
+- login
+- register
+- dashboard
+- add task
+- edit task
+- task details
+
+Status:
+- Completed.
+
+## 20. Flutter models
+
+Requested:
+- `user_model.dart`
+- `task_model.dart`
+- `fromJson()`
+- `toJson()`
+
+Done:
+- Added `lib/models/user_model.dart`
+- Added `lib/models/task_model.dart`
+- Implemented serialization methods
+
+Status:
+- Completed.
+
+## 21. API service
+
+Requested:
+- `services/api_service.dart`
+- base URL
+- Dio client
+- token headers
+
+Done:
+- Added `lib/services/api_service.dart`
+- Configured Dio with base URL, timeouts, headers, auth token setter, and API error mapping
+- Connected auth and task endpoints to the backend
+
+Status:
+- Completed.
+
+## 22. Auth provider
+
+Requested:
+- login
+- register
+- logout
+- save token
+- auto login
+
+Done:
+- Rebuilt `lib/providers/auth_provider.dart` with Riverpod
+- Added secure token restore and session bootstrap
+- Added token persistence and current-user fetch on login
+
+Status:
+- Completed.
+
+## 23. Task provider
+
+Requested:
+- fetch tasks
+- add task
+- edit task
+- delete task
+- loading states
+
+Done:
+- Rebuilt `lib/providers/task_provider.dart` with Riverpod
+- Added fetch, create, update, delete, search query state, status filter state, loading state, save state, and error state
+
+Status:
+- Completed.
+
+## 24. Reusable widgets
+
+Requested:
+- `custom_button.dart`
+- `custom_textfield.dart`
+- `task_card.dart`
+- `loading_widget.dart`
+
+Done:
+- Added all requested widgets
+- Kept the reusable task form widget and migrated it to the new model/provider stack
+
+Status:
+- Completed.
+
+## 25. Splash screen
+
+Requested:
+- check token exists
+- route accordingly
+
+Done:
+- Splash screen now works with auth bootstrap and `go_router` redirects
+- Secure storage is checked before routing to login or dashboard
+
+Status:
+- Completed.
+
+## 26. Login screen
+
+Requested:
+- email validation
+- password validation
+- loading state
+- error snackbar
+
+Done:
+- Added validations
+- Added loading button state
+- Added error snackbar handling
+- Added success snackbar message
+
+Status:
+- Completed.
+
+## 27. Register screen
+
+Requested:
+- confirm password
+- validations
+
+Done:
+- Added full validation and password confirmation
+- Added register success and error snackbar behavior
+
+Status:
+- Completed.
+
+## 28. Dashboard screen
+
+Requested:
+- task list
+- pull to refresh
+- search
+- filter dropdown
+- floating action button
+- logout
+- beautiful cards
+- status chips
+- priority colors
+
+Done:
+- Rebuilt dashboard using Riverpod task state
+- Added search and status filtering
+- Added pull-to-refresh
+- Added FAB for add-task flow
+- Added logout action
+- Added premium summary header, task cards, status chips, priority colors, and improved empty/error states
+
+Status:
+- Completed.
+
+## 29. Add/Edit task screen
+
+Requested:
+- form validation
+- date picker
+- dropdowns
+- reusable form
+
+Done:
+- Reused the shared task form widget
+- Added loading state, validation, date picker, dropdowns, and success/error snackbars
+
+Status:
+- Completed.
+
+## 30. Task details screen
+
+Requested:
+- full task view
+- edit
+- delete
+- beautiful UI
+
+Done:
+- Added task details view with chips, card sections, edit action, delete action, and delete success/error feedback
+
+Status:
+- Completed.
+
+## 31. Error handling
+
+Requested:
+- network error handling
+- API error messages
+- empty states
+
+Done:
+- Added Dio exception mapping in API service
+- Added screen-level snackbar surfacing
+- Added empty and error state UI on dashboard
+
+Status:
+- Completed.
+
+## 32. Loading states
+
+Requested:
+- every async action should show loading
+
+Done:
+- Added auth loading states
+- Added task fetch and mutation loading states
+- Added reusable loading widget
+
+Status:
+- Completed.
+
+## 33. Snackbar messages
+
+Requested examples:
+- login successful
+- task added
+- task deleted
+
+Done:
+- Added global snackbar helper and used it in login, register, add task, update task, delete task, and logout flows
+
+Status:
+- Completed.
+
+## 34. Empty state UI
+
+Requested:
+- polished "No tasks found" state
+
+Done:
+- Added empty state card with supportive copy and iconography
+
+Status:
+- Completed.
+
+## 35. UI improvements
+
+Requested:
+- shadows
+- rounded cards
+- spacing
+- icons
+- smooth animations
+
+Done:
+- Added rounded cards, shadowed hero section, improved spacing rhythm, icon-led inputs/actions, and fade-slide route transitions
+
+Status:
+- Completed.
+
+## 36. Flutter verification
+
+Verified:
+- `flutter analyze` -> passed
+- `flutter test` -> passed
+
+Notes:
+- Old manual state/navigation files were replaced with the new Riverpod + Dio + go_router architecture.
+
+Date update: May 21, 2026
+
 ## 9. Task schemas
 
 Requested:

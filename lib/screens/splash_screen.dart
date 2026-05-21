@@ -11,7 +11,7 @@ class SplashScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFFF6F3EC), Color(0xFFE5F1EC), Color(0xFFFDF8F1)],
+            colors: [Color(0xFFF7F3EC), Color(0xFFE6F2ED), Color(0xFFFDF8F2)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -21,24 +21,31 @@ class SplashScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.76),
+                  color: Colors.white.withValues(alpha: 0.78),
                   borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
                 ),
                 child: const Icon(Icons.track_changes_rounded, size: 44),
               ),
               const SizedBox(height: 18),
               Text('NexTask', style: theme.textTheme.displayMedium),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
               Text(
-                'Loading your workspace...',
+                'Checking your secure session...',
                 style: theme.textTheme.bodyLarge,
               ),
-              const SizedBox(height: 22),
+              const SizedBox(height: 20),
               const SizedBox(
-                width: 40,
-                height: 40,
+                width: 36,
+                height: 36,
                 child: CircularProgressIndicator(strokeWidth: 3),
               ),
             ],
